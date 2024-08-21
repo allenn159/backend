@@ -4,6 +4,6 @@ import { requireAuth } from "~/middleware/index";
 
 const userRouter = Router();
 
-userRouter.get("/", getPublicData);
+userRouter.get("/", requireAuth, getPublicData);
 
 export default userRouter;

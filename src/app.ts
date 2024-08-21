@@ -4,6 +4,7 @@ import express, { Application } from "express";
 import { StrictAuthProp } from "@clerk/clerk-sdk-node";
 import { errorHandler } from "./middleware";
 import routes from "./routes";
+import cors from "cors";
 
 declare global {
   namespace Express {
@@ -13,6 +14,12 @@ declare global {
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Allow requests from this origin
+  })
+);
 
 app.use(express.json());
 app.use("/api", routes);

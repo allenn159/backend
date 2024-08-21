@@ -1,4 +1,7 @@
-import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
+import {
+  ClerkExpressRequireAuth,
+  RequireAuthProp,
+} from "@clerk/clerk-sdk-node";
 import { Request, Response, NextFunction } from "express";
 
 const clerkAuth = ClerkExpressRequireAuth();
