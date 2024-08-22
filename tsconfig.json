@@ -2,8 +2,12 @@
   "compilerOptions": {
     "baseUrl": "./src", // Base directory for resolving non-relative modules
     "paths": {
+      "~/*": ["*"],
       "~/controllers/*": ["controllers/*"],
-      "~/middleware/*": ["middleware/*"]
+      "~/middleware/*": ["middleware/*"],
+      "~/routes/*": ["routes/*"],
+      "~/models/*": ["models/*"],
+      "~/utils/*": ["utils/*"]
     },
     "outDir": "./dist", // Output directory for compiled files
     "rootDir": "./src", // Root directory for source files
@@ -11,7 +15,9 @@
     "target": "es6", // ECMAScript target version
     "strict": true, // Enable all strict type-checking options
     "esModuleInterop": true, // Enable compatibility with CommonJS and ES modules
-    "skipLibCheck": true // Skip type checking of declaration files
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "types": ["node", "express"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

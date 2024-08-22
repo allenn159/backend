@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { getPublicData } from "~/controllers/User/userController";
-import { requireAuth } from "~/middleware/index";
+import { getUserInfo } from "~/controllers/User/userController";
+import { requireAuth } from "~/middleware";
 
 const userRouter = Router();
 
-userRouter.get("/", requireAuth, getPublicData);
+userRouter.get("/", requireAuth, getUserInfo);
 
 export default userRouter;

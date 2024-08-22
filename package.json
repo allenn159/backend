@@ -16,7 +16,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "module-alias": "^2.2.3"
+    "module-alias": "^2.2.3",
+    "mysql2": "^3.11.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
@@ -28,7 +29,10 @@
     "typescript": "^5.5.4"
   },
   "_moduleAliases": {
-    "~/controllers": "dist/controllers",
-    "~/middleware": "dist/middleware"
+    "~/controllers": "src/controllers",
+    "~/middleware": "src/middleware",
+    "~/routes": "src/routes",
+    "~/models": "src/models",
+    "~/utils": "src/utils"
   }
 }
