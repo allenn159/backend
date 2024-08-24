@@ -6,32 +6,33 @@ interface User {
   user_id: string;
   created_at: number;
   is_subscribed: boolean;
+  subscribed_at: number | null;
 }
 
-export async function getUser(userId: string) {
+export async function findOrCreateUser(userId: string) {
   try {
-    const [rows] = await pool.query("SELECT * FROM users WHERE user_id = ?", [
-      userId,
-    ]);
+    const findUserSql = `SELECT * FROM users WHERE user_id = ?`;
+    const [rows] = await pool.query(findUserSql, [userId]);
 
     const users = rows as User[];
-    return users.length > 0 ? users[0] : null;
-  } catch (error) {
-    throw error;
-  }
-}
 
-export async function createUser(userId: string) {
-  try {
-    const sql = `
+    if (users.length > 0) {
+      return users[0];
+    } else {
+      const createUserSql = `
       INSERT INTO users (user_id, created_at)
       VALUES (?, ?)
     `;
 
-    const now = getCurrentTimestamp();
-    await pool.query(sql, [userId, now]);
+      const now = getCurrentTimestamp();
+      await pool.query(createUserSql, [userId, now]);
 
-    return getUser(userId);
+      const [rows] = await pool.query(findUserSql, [userId]);
+
+      const users = rows as User[];
+
+      return users[0];
+    }
   } catch (error) {
     throw error;
   }

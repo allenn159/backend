@@ -1,13 +1,9 @@
 import { Request, Response } from "express";
-import { getUser, createUser } from "~/models";
+import { findOrCreateUser } from "~/models";
 
 export const getUserInfo = async (req: Request, res: Response) => {
   const userId = req.auth.userId;
-  let user = await getUser(userId);
-
-  if (!user) {
-    user = await createUser(userId);
-  }
+  const user = await findOrCreateUser(userId);
 
   res.status(200).send({ user });
 };
