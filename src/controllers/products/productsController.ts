@@ -6,7 +6,6 @@ import {
   createProducts as addProducts,
   GetProductParams,
 } from "~/models";
-import { DEFAULT_LIMIT, DEFAULT_OFFSET } from "~/controllers/utils";
 
 export const createProducts = async (
   req: Request,
@@ -40,7 +39,7 @@ export const viewProducts = async (
     return res.status(400).json({ errors: errors.array() });
   }
 
-  let { limit = DEFAULT_LIMIT, offset = DEFAULT_OFFSET, sort } = req.body;
+  let { sort } = req.body;
 
   if (!sort) {
     sort = {
@@ -50,8 +49,6 @@ export const viewProducts = async (
 
   const params: GetProductParams = {
     ...req.body,
-    limit,
-    offset,
     sort,
   };
 

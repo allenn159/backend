@@ -12,6 +12,6 @@ import {
 const productsRouter = Router();
 
 productsRouter.post("/", requireAuth, createProductsValidation, createProducts);
-productsRouter.post("/view", viewProductsValidation, viewProducts);
+productsRouter.post("/view", requireAuth, viewProductsValidation, viewProducts);
 
 export default productsRouter;

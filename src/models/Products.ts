@@ -1,4 +1,5 @@
 import { pool } from "~/utils";
+import { DEFAULT_LIMIT, DEFAULT_OFFSET } from "~/controllers/utils";
 
 export interface Product {
   name: string;
@@ -62,7 +63,13 @@ async function createProduct(product: Product, userId: number) {
 }
 
 export async function getProducts(params: GetProductParams, userId: number) {
-  const { limit, offset, searchTerm, dateRange, sort } = params;
+  const {
+    limit = DEFAULT_LIMIT,
+    offset = DEFAULT_OFFSET,
+    searchTerm,
+    dateRange,
+    sort,
+  } = params;
 
   let baseGetProductsQuery = `SELECT id, name, created_at, purchase_price, sold_price, sold_at from products WHERE user_id = ?`;
   const queryParams: (string | number | undefined)[] = [userId];
