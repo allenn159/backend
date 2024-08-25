@@ -26,5 +26,5 @@ app.use("/api", routes);
 app.use(errorHandler);
 
 app.listen(port, () => {
-  console.log(`Example app listening at ${port}`);
+  console.log(`Flippr listening at ${port}`);
 });
