@@ -53,8 +53,8 @@ export const viewProducts = async (
   };
 
   try {
-    // const user = await findOrCreateUser(req.auth.userId);
-    const products = await getProducts(params, 2);
+    const user = await findOrCreateUser(req.auth.userId);
+    const products = await getProducts(params, user.id);
 
     res.status(201).json({ products: products });
   } catch (error) {

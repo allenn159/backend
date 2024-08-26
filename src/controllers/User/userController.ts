@@ -5,5 +5,5 @@ export const getUserInfo = async (req: Request, res: Response) => {
   const userId = req.auth.userId;
   const user = await findOrCreateUser(userId);
 
-  res.status(200).send({ user });
+  res.status(200).json({ user });
 };
