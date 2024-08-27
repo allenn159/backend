@@ -6,6 +6,6 @@ import { createTagValidation } from "./postBodyValidations";
 const tagsRouter = Router();
 
 tagsRouter.get("/", requireAuth, getTags);
-tagsRouter.post("/", createTagValidation, createTag);
+tagsRouter.post("/", requireAuth, createTagValidation, createTag);
 
 export default tagsRouter;

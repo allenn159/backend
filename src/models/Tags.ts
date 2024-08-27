@@ -1,4 +1,5 @@
 import { pool } from "~/utils";
+import { getCurrentTimestamp } from "~/utils";
 
 interface Tag {
   id: number;
@@ -31,6 +32,38 @@ export async function getTags(queryParams: GetTagsQueryParams, userId: number) {
     throw {
       status: 500,
       message: `An error occurred while attempting to get products. Please try again later.`,
+      originalError: error,
+    };
+  }
+}
+
+export async function createTags(
+  tags: Pick<Tag, "name" | "color">[],
+  userId: number
+) {
+  for (let tag of tags) {
+    await createTag(tag, userId);
+  }
+}
+
+export async function createTag(
+  tag: Pick<Tag, "name" | "color">,
+  userId: number
+) {
+  const { name, color } = tag;
+  const createTagQuery = `INSERT INTO tags (name, color, created_at, user_id) VALUES (?, ?, ?, ?)`;
+
+  try {
+    await pool.query(createTagQuery, [
+      name,
+      color,
+      getCurrentTimestamp(),
+      userId,
+    ]);
+  } catch (error) {
+    throw {
+      status: 500,
+      message: `An error occurred while creating a tag with the name ${name}. Please try again later.`,
       originalError: error,
     };
   }

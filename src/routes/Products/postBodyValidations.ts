@@ -11,9 +11,6 @@ export const createProductsValidation = [
     .withMessage("Name must be a string")
     .isLength({ min: 1, max: 255 })
     .withMessage("Name must be between 1 and 255 characters"),
-  body("*.created_at")
-    .isInt({ gt: 0 })
-    .withMessage("Created_at must be a positive integer"),
   body("*.purchase_price")
     .custom((value) => {
       // Check if the value is a decimal with up to 2 decimal places
