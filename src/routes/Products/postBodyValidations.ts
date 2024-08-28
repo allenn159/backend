@@ -1,11 +1,26 @@
 import { body } from "express-validator";
+import { validateAllowedFields } from "~/utils";
 
 export const createProductsValidation = [
   body()
     .isArray({ min: 1, max: 10 })
     .withMessage(
       "Products must be an array with at least 1 and at most 10 items"
-    ),
+    )
+    .custom((products) => {
+      const allowedFields = [
+        "name",
+        "purchase_price",
+        "sold_price",
+        "sold_at",
+        "image_link",
+        "fees",
+        "tags",
+      ];
+
+      validateAllowedFields(products, allowedFields);
+      return true;
+    }),
   body("*.name")
     .isString()
     .withMessage("Name must be a string")
@@ -36,6 +51,27 @@ export const createProductsValidation = [
     .optional()
     .isURL()
     .withMessage("Image_link must be a valid URL"),
+  body("*.fees")
+    .optional()
+    .custom((value) => {
+      // Check if the value is a decimal with up to 2 decimal places
+      return /^\d+(\.\d{1,2})?$/.test(value);
+    })
+    .withMessage("Fees must be a decimal number with up to two decimal places"),
+  body("*.tags")
+    .optional()
+    .isArray({ min: 1 })
+    .withMessage(
+      "Numbers must be provided as an array with at least one tag id"
+    )
+    .custom((value) => {
+      for (let num of value) {
+        if (typeof num !== "number") {
+          throw new Error("Array must only contain numbers");
+        }
+      }
+      return true;
+    }),
 ];
 
 export const viewProductsValidation = [

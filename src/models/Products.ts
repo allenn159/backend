@@ -1,14 +1,22 @@
-import { pool } from "~/utils";
+import { pool, withTransaction } from "~/utils";
 import { DEFAULT_LIMIT, DEFAULT_OFFSET } from "~/controllers/utils";
+import { getCurrentTimestamp } from "~/utils";
+import { ResultSetHeader } from "mysql2/promise";
 
 export interface Product {
   name: string;
-  created_at: number;
   purchase_price: number;
   sold_price: number | null;
   sold_at: number | null;
   image_link: string | null;
   user_id: number;
+  tags:
+    | {
+        name: string;
+        color: string;
+      }[]
+    | null;
+  fees: number | null;
 }
 
 export interface GetProductParams {
@@ -33,26 +41,43 @@ export async function createProducts(products: Product[], userId: number) {
 
 async function createProduct(product: Product, userId: number) {
   try {
-    const {
-      name,
-      created_at,
-      purchase_price,
-      sold_price,
-      sold_at,
-      image_link,
-    } = product;
-    const createProductQuery = `INSERT INTO products (name, created_at, purchase_price, sold_price, sold_at, image_link, user_id)
-  VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    withTransaction(async (connection) => {
+      const {
+        name,
+        purchase_price,
+        sold_price,
+        sold_at,
+        image_link,
+        fees,
+        tags,
+      } = product;
+      const createProductQuery = `INSERT INTO products (name, created_at, purchase_price, sold_price, sold_at, image_link, fees, user_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    await pool.query(createProductQuery, [
-      name,
-      created_at,
-      purchase_price,
-      sold_price,
-      sold_at,
-      image_link,
-      userId,
-    ]);
+      const [result] = await connection.query<ResultSetHeader>(
+        createProductQuery,
+        [
+          name,
+          getCurrentTimestamp(),
+          purchase_price,
+          sold_price,
+          sold_at,
+          image_link,
+          fees,
+          userId,
+        ]
+      );
+
+      const productId = result.insertId;
+
+      if (tags && tags.length > 0) {
+        const insertTagQuery = `INSERT INTO product_tags (product_id, tag_id) VALUES (?, ?)`;
+
+        for (const tagId of tags) {
+          await connection.query(insertTagQuery, [productId, tagId]);
+        }
+      }
+    });
   } catch (error) {
     throw {
       status: 500,
@@ -71,7 +96,28 @@ export async function getProducts(params: GetProductParams, userId: number) {
     sort,
   } = params;
 
-  let baseGetProductsQuery = `SELECT id, name, created_at, purchase_price, sold_price, sold_at from products WHERE user_id = ?`;
+  let baseGetProductsQuery = `
+    SELECT 
+      p.id, 
+      p.name, 
+      p.created_at, 
+      p.purchase_price, 
+      p.sold_price, 
+      p.sold_at,
+      CASE 
+        WHEN COUNT(t.id) > 0 THEN JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'color', t.color))
+        ELSE NULL
+      END AS tags
+    FROM 
+      products p
+    LEFT JOIN 
+      product_tags pt ON p.id = pt.product_id
+    LEFT JOIN 
+      tags t ON pt.tag_id = t.id
+    WHERE 
+      p.user_id = ?
+    GROUP BY 
+      p.id`;
   const queryParams: (string | number | undefined)[] = [userId];
 
   if (searchTerm) {

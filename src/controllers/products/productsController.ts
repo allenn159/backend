@@ -17,13 +17,13 @@ export const createProducts = async (
     return res.status(400).json({ errors: errors.array() });
   }
 
-  try {
-    const productData: Product[] = req.body;
+  const productData: Product[] = req.body;
 
+  try {
     const user = await findOrCreateUser(req.auth.userId);
     await addProducts(productData, user.id);
 
-    res.status(201).json({ message: "Product was created successfully!" });
+    res.status(201).json({ message: "Product(s) was created successfully!" });
   } catch (error) {
     next(error);
   }
