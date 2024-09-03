@@ -12,6 +12,7 @@ export interface Product {
   user_id: number;
   tags:
     | {
+        id: number;
         name: string;
         color: string;
       }[]
@@ -105,7 +106,7 @@ export async function getProducts(params: GetProductParams, userId: number) {
       p.sold_price, 
       p.sold_at,
       CASE 
-        WHEN COUNT(t.id) > 0 THEN JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'color', t.color))
+        WHEN COUNT(t.id) > 0 THEN JSON_ARRAYAGG(JSON_OBJECT('id', t.id, 'name', t.name, 'color', t.color, 'text_color', t.text_color))
         ELSE NULL
       END AS tags
     FROM 
@@ -117,33 +118,33 @@ export async function getProducts(params: GetProductParams, userId: number) {
     WHERE 
       p.user_id = ?
     GROUP BY 
-      p.id`;
+      p.id, p.name, p.created_at, p.purchase_price, p.sold_price, p.sold_at`;
   const queryParams: (string | number | undefined)[] = [userId];
 
   if (searchTerm) {
-    baseGetProductsQuery += ` AND name LIKE ?`;
+    baseGetProductsQuery += ` AND p.name LIKE ?`;
     queryParams.push(`%${searchTerm}%`);
   }
 
   if (dateRange) {
-    baseGetProductsQuery += ` AND created_at >= ? AND created_at <= ?`;
+    baseGetProductsQuery += ` AND p.created_at >= ? AND p.created_at <= ?`;
     queryParams.push(dateRange.from, dateRange.to);
   }
 
   if (sort) {
     if (sort.name) {
       if (sort.name === "ASC") {
-        baseGetProductsQuery += ` ORDER BY name ASC`;
+        baseGetProductsQuery += ` ORDER BY p.name ASC`;
       } else {
-        baseGetProductsQuery += ` ORDER BY name DESC`;
+        baseGetProductsQuery += ` ORDER BY p.name DESC`;
       }
     }
 
     if (sort.created_at) {
       if (sort.created_at === "ASC") {
-        baseGetProductsQuery += ` ORDER BY created_at ASC`;
+        baseGetProductsQuery += ` ORDER BY p.created_at ASC`;
       } else {
-        baseGetProductsQuery += ` ORDER BY created_at DESC`;
+        baseGetProductsQuery += ` ORDER BY p.created_at DESC`;
       }
     }
   }
@@ -156,6 +157,7 @@ export async function getProducts(params: GetProductParams, userId: number) {
 
     return products[0];
   } catch (error) {
+    console.log(error);
     throw {
       status: 500,
       message: `An error occurred while attempting to get products. Please try again later.`,

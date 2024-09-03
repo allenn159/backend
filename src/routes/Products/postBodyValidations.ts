@@ -88,7 +88,7 @@ export const viewProductsValidation = [
   body("searchTerm")
     .optional()
     .isString()
-    .isLength({ min: 1, max: 255 })
+    .isLength({ min: 0, max: 255 })
     .withMessage("Search term must be between 1 and 255 characters"),
   body("dateRange")
     .optional()
@@ -100,7 +100,7 @@ export const viewProductsValidation = [
       }
 
       const isValidFrom =
-        Number.isInteger(from) && from >= 1 && from.toString().length <= 10;
+        Number.isInteger(from) && from >= 0 && from.toString().length <= 10;
       const isValidTo =
         Number.isInteger(to) && to >= 1 && to.toString().length <= 10;
 

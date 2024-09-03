@@ -11,7 +11,7 @@ interface User {
 
 export async function findOrCreateUser(userId: string) {
   try {
-    const findUserSql = `SELECT created_at, is_subscribed, subscribed_at FROM users WHERE user_id = ?`;
+    const findUserSql = `SELECT id, created_at, is_subscribed, subscribed_at FROM users WHERE user_id = ?`;
     const [rows] = await pool.query(findUserSql, [userId]);
 
     const users = rows as User[];

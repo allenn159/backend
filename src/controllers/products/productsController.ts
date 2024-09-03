@@ -56,7 +56,7 @@ export const viewProducts = async (
     const user = await findOrCreateUser(req.auth.userId);
     const products = await getProducts(params, user.id);
 
-    res.status(201).json({ products: products });
+    res.status(201).json(products);
   } catch (error) {
     next(error);
   }
