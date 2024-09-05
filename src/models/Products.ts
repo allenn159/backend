@@ -105,6 +105,7 @@ export async function getProducts(params: GetProductParams, userId: number) {
       p.purchase_price, 
       p.sold_price, 
       p.sold_at,
+      p.fees,
       CASE 
         WHEN COUNT(t.id) > 0 THEN JSON_ARRAYAGG(JSON_OBJECT('id', t.id, 'name', t.name, 'color', t.color, 'text_color', t.text_color))
         ELSE NULL
@@ -117,8 +118,7 @@ export async function getProducts(params: GetProductParams, userId: number) {
       tags t ON pt.tag_id = t.id
     WHERE 
       p.user_id = ?
-    GROUP BY 
-      p.id, p.name, p.created_at, p.purchase_price, p.sold_price, p.sold_at`;
+    `;
   const queryParams: (string | number | undefined)[] = [userId];
 
   if (searchTerm) {
@@ -130,6 +130,10 @@ export async function getProducts(params: GetProductParams, userId: number) {
     baseGetProductsQuery += ` AND p.created_at >= ? AND p.created_at <= ?`;
     queryParams.push(dateRange.from, dateRange.to);
   }
+
+  baseGetProductsQuery += `
+    GROUP BY 
+      p.id, p.name, p.created_at, p.purchase_price, p.sold_price, p.sold_at, p.fees`;
 
   if (sort) {
     if (sort.name) {
