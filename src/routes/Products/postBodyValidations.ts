@@ -146,3 +146,69 @@ export const viewProductsValidation = [
     return true;
   }),
 ];
+
+export const editProductValidation = [
+  body("name")
+    .isString()
+    .withMessage("Name must be a string")
+    .isLength({ min: 1, max: 255 })
+    .withMessage("Name must be between 1 and 255 characters"),
+  body("purchase_price")
+    .custom((value) => {
+      // Check if the value is a decimal with up to 2 decimal places
+      return /^\d+(\.\d{1,2})?$/.test(value);
+    })
+    .withMessage(
+      "purchase_price must be a decimal number with up to two decimal places"
+    ),
+  body("sold_price")
+    .optional()
+    .custom((value) => {
+      // Check if the value is a decimal with up to 2 decimal places
+      return /^\d+(\.\d{1,2})?$/.test(value);
+    })
+    .withMessage(
+      "sold_price must be a decimal number with up to two decimal places"
+    ),
+  body("sold_at")
+    .optional()
+    .isInt({ gt: 0 })
+    .withMessage("Sold_at must be a positive integer"),
+  body("image_link")
+    .optional()
+    .isURL()
+    .withMessage("Image_link must be a valid URL"),
+  body("fees")
+    .optional()
+    .custom((value) => {
+      // Check if the value is a decimal with up to 2 decimal places
+      return /^\d+(\.\d{1,2})?$/.test(value);
+    })
+    .withMessage("Fees must be a decimal number with up to two decimal places"),
+  body("tags")
+    .optional()
+    .isArray({ min: 1 })
+    .withMessage("Tags must be an array with at least one tag id")
+    .custom((value) => {
+      for (let num of value) {
+        if (typeof num !== "number") {
+          throw new Error("Tags array must only contain numbers");
+        }
+      }
+      return true;
+    }),
+];
+
+export const deleteProductsValidation = [
+  body("productIds")
+    .isArray({ min: 1 })
+    .withMessage("Numbers array must have at least one element")
+    .custom((value) => {
+      for (let num of value) {
+        if (typeof num !== "number") {
+          throw new Error("All elements in the array must be numbers");
+        }
+      }
+      return true;
+    }),
+];

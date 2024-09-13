@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from "~/utils";
 import { ResultSetHeader } from "mysql2/promise";
 
 export interface Product {
+  id: number;
   name: string;
   purchase_price: number;
   sold_price: number | null;
@@ -34,13 +35,16 @@ export interface GetProductParams {
   };
 }
 
-export async function createProducts(products: Product[], userId: number) {
+export async function createProducts(
+  products: Omit<Product, "id">[],
+  userId: number
+) {
   for (let product of products) {
     await createProduct(product, userId);
   }
 }
 
-async function createProduct(product: Product, userId: number) {
+async function createProduct(product: Omit<Product, "id">, userId: number) {
   try {
     withTransaction(async (connection) => {
       const {
@@ -71,7 +75,7 @@ async function createProduct(product: Product, userId: number) {
 
       const productId = result.insertId;
 
-      if (tags && tags.length > 0) {
+      if (tags) {
         const insertTagQuery = `INSERT INTO product_tags (product_id, tag_id) VALUES (?, ?)`;
 
         for (const tagId of tags) {
@@ -165,6 +169,119 @@ export async function getProducts(params: GetProductParams, userId: number) {
     throw {
       status: 500,
       message: `An error occurred while attempting to get products. Please try again later.`,
+      originalError: error,
+    };
+  }
+}
+
+export async function getProduct(productId: number, userId: number) {
+  try {
+    const getProductQuery = `
+      SELECT 
+        p.id, 
+        p.name, 
+        p.created_at, 
+        p.purchase_price, 
+        p.sold_price, 
+        p.sold_at,
+        p.fees,
+        CASE 
+          WHEN COUNT(t.id) > 0 THEN JSON_ARRAYAGG(JSON_OBJECT('id', t.id, 'name', t.name, 'color', t.color, 'text_color', t.text_color))
+          ELSE NULL
+        END AS tags
+      FROM 
+        products p
+      LEFT JOIN 
+        product_tags pt ON p.id = pt.product_id
+      LEFT JOIN 
+        tags t ON pt.tag_id = t.id
+      WHERE 
+        p.user_id = ? AND p.id = ?
+    `;
+
+    const product = await pool.query(getProductQuery, [userId, productId]);
+
+    return product[0];
+  } catch (error) {
+    throw {
+      status: 500,
+      message: `An error occurred while retrieving the product with the id ${productId}. Please try again later.`,
+      originalError: error,
+    };
+  }
+}
+
+export async function editProduct(
+  productId: number,
+  product: Product,
+  userId: number
+) {
+  try {
+    withTransaction(async (connection) => {
+      const {
+        name,
+        purchase_price,
+        sold_price,
+        sold_at,
+        image_link,
+        fees,
+        tags,
+      } = product;
+
+      const updateProductQuery = `
+        UPDATE products
+        SET name = ?, purchase_price = ?, sold_price = ?, sold_at = ?, image_link = ?, fees = ?
+        WHERE id = ? AND user_id = ?
+      `;
+
+      await connection.query(updateProductQuery, [
+        name,
+        purchase_price,
+        sold_price,
+        sold_at,
+        image_link,
+        fees,
+        productId,
+        userId,
+      ]);
+
+      const deleteTagsQuery = `
+        DELETE from product_tags
+        WHERE product_id = ?
+      `;
+
+      await connection.query(deleteTagsQuery, [productId]);
+
+      if (tags) {
+        const insertTagQuery = `INSERT INTO product_tags (product_id, tag_id) VALUES (?, ?)`;
+
+        for (const tagId of tags) {
+          await connection.query(insertTagQuery, [productId, tagId]);
+        }
+      }
+    });
+  } catch (error) {
+    throw {
+      status: 500,
+      message: `An error occurred while editing the product with the name ${product.name}. Please try again later.`,
+      originalError: error,
+    };
+  }
+}
+
+export async function deleteProducts(productIds: number[], userId: number) {
+  const deleteProductsQuery = `
+        DELETE from products
+        WHERE id IN (?)
+        AND user_id = ?
+      `;
+
+  try {
+    await pool.query(deleteProductsQuery, [productIds, userId]);
+  } catch (error) {
+    throw {
+      status: 500,
+      message: `An error occurred while deleting the product(s). Please try again later.`,
       originalError: error,
     };
   }

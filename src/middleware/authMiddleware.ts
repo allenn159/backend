@@ -1,7 +1,4 @@
-import {
-  ClerkExpressRequireAuth,
-  RequireAuthProp,
-} from "@clerk/clerk-sdk-node";
+import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import { Request, Response, NextFunction } from "express";
 
 const clerkAuth = ClerkExpressRequireAuth();
@@ -13,8 +10,9 @@ export const requireAuth = (
 ) => {
   clerkAuth(req, res, (err) => {
     if (err) {
-      return next(err); // Pass authentication errors to the global error handler
+      return next(err);
     }
-    next(); // Proceed to the next middleware or route handler if authenticated
+
+    next();
   });
 };
