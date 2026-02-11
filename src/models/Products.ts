@@ -125,9 +125,19 @@ export async function getProducts(params: GetProductParams, userId: number) {
     `;
   const queryParams: (string | number | undefined)[] = [userId];
 
+  let totalProfitQueryBaseQuery = `
+  SELECT SUM(IFNULL(sold_price, 0) - (purchase_price + IFNULL(fees, 0))) AS total_profit
+  FROM products p
+  WHERE sold_price IS NOT NULL AND p.user_id = ?
+`;
+  const totalProfitQueryParams: (string | number | undefined)[] = [userId];
+
   if (searchTerm) {
     baseGetProductsQuery += ` AND p.name LIKE ?`;
     queryParams.push(`%${searchTerm}%`);
+
+    totalProfitQueryBaseQuery += ` AND p.name LIKE ?`;
+    totalProfitQueryParams.push(`%${searchTerm}%`);
   }
 
   if (dateRange) {
@@ -161,9 +171,15 @@ export async function getProducts(params: GetProductParams, userId: number) {
   queryParams.push(limit, offset);
 
   try {
-    const products = await pool.query(baseGetProductsQuery, queryParams);
+    const productsQuery = pool.query(baseGetProductsQuery, queryParams);
+    const totalProfitQuery = pool.query(totalProfitQueryBaseQuery, queryParams);
 
-    return products[0];
+    const [products, totalProfit] = await Promise.all([
+      productsQuery,
+      totalProfitQuery,
+    ]);
+
+    return [products[0], totalProfit[0]];
   } catch (error) {
     console.log(error);
     throw {
